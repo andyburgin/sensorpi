@@ -1,10 +1,10 @@
 # Visualising IOT Sensor Data on a Raspberry Pi Cluster using Mesos, Spark, Kafka, InfluxDB and Grafana
 
-This repo holds various ramblings, scripts and code put together for and experiment to visualise realtime sensor data processed on a cluster of Raspberry Pis. Not disimilar to https://www.circuits.dk/datalogger-example-using-sense-hat-influxdb-grafana/ but using the features of the cluster for near realtime processing.
+This repo holds various ramblings, scripts and code put together for and experiment to visualise realtime sensor data processed on a cluster of Raspberry Pis. Not dissimilar to https://www.circuits.dk/datalogger-example-using-sense-hat-influxdb-grafana/ but using the features of the cluster for near realtime processing.
 
 ![View Dashboard](doc/12_grafana_dashboard.png)
 
-But first a few caveats, unlike my [Hadoopi project](http://data.andyburgin.co.uk/post/157450047463/running-hue-on-a-raspberry-pi-hadoop-cluster) as this is an experiment there isn't chef code to setup and configure the cluster of Raspberry Pis (you'll need to do this by hand). Originally this project was intended to implement a [SMACK (Spark, Mesos, Akka, Cassandra and Kafka) stack]( https://www.oreilly.com/ideas/the-smack-stack). You'll see the end result is more of a SMKS stack (Spark, Mesos, Kafka and Scala) acting as a transfer mechanism between two Pis for capturing sensor mnetrics and visualsation of the collected data. On the sensor side a Pi zero is using an [EnviroPhat](http://blog.pimoroni.com/enviro-phat/) pushing data to Kafka via Python. On the visualisation side there is an influxdb instance and grafana server to store and serve a realtime dashboard of the data.
+But first a few caveats, unlike my [Hadoopi project](http://data.andyburgin.co.uk/post/157450047463/running-hue-on-a-raspberry-pi-hadoop-cluster) as this is an experiment there isn't chef code to setup and configure the cluster of Raspberry Pis (you'll need to do this by hand). Originally this project was intended to implement a [SMACK (Spark, Mesos, Akka, Cassandra and Kafka) stack]( https://www.oreilly.com/ideas/the-smack-stack). You'll see the end result is more of a SMKS stack (Spark, Mesos, Kafka and Scala) acting as a transfer mechanism between two Pis for capturing sensor metrics and visualsation of the collected data. On the sensor side a Pi zero is using an [EnviroPhat](http://blog.pimoroni.com/enviro-phat/) pushing data to Kafka via Python. On the visualisation side there is an influxdb instance and grafana server to store and serve a realtime dashboard of the data.
 
 ![Raspberry Pi Cluster](doc/cluster.jpg)
 
@@ -23,13 +23,13 @@ These instructions below will help you set up the cluster, this is how we are go
 
 Each of the workers will run the spark application and kafka brokers as part of the mesos cluster.
 
-You'll be using the development PC for building the scala application and submitting it to Spark, if you have Kafka intalled you can also use that to view the messages on the Kafka topic to help with troubleshooting.
+You'll be using the development PC for building the scala application and submitting it to Spark, if you have Kafka installed you can also use that to view the messages on the Kafka topic to help with troubleshooting.
 
 As stated above this project really is an experiment because you could post metrics from the sensor Pi directly to influxdb - therefore the mesos, spark, scala and kafka components really are their just to learn.
 
 ## Compilation and Packaging
 
-Becasue the Raspberry Pi uses an arm architecture we are going to have to compile Mesos and Kafka, you'll also find minimal documentation on achieving this, I'm using instructions that Netflix posted after one of their [hackdays](http://ispyker.blogspot.co.uk/2016/05/services-with-netflix-titus-and.html) and [blog post](http://blog.haosdent.me/2016/04/24/mesos-on-arm/) so as a result we have quite an old version of Mesos 0.28.3. I'll be using the tried and trusted jessie lite 23-09-16 distribution of raspbian as I'd proven whilst building the Hadoopi project.
+Because the Raspberry Pi uses an arm architecture we are going to have to compile Mesos and Kafka, you'll also find minimal documentation on achieving this, I'm using instructions that Netflix posted after one of their [hackdays](http://ispyker.blogspot.co.uk/2016/05/services-with-netflix-titus-and.html) and [blog post](http://blog.haosdent.me/2016/04/24/mesos-on-arm/) so as a result we have quite an old version of Mesos 0.28.3. I'll be using the tried and trusted jessie lite 23-09-16 distribution of raspbian as I'd proven whilst building the Hadoopi project.
 
 Boot one of you Pis from a fresh install and run the following to prepare the environment for compiling:
 ```
@@ -208,7 +208,7 @@ cd /
 tar -zxvf /home/pi/mesos-install.tar.gz
 apt-get install libcurl4-nss-dev libsvn-dev 
 ```
-Next we need to setup an nfs share for the spark applicataions to use for checkpointing, details taken from http://www.instructables.com/id/Turn-Raspberry-Pi-into-a-Network-File-System-versi/
+Next we need to setup an nfs share for the spark applications to use for checkpointing, details taken from http://www.instructables.com/id/Turn-Raspberry-Pi-into-a-Network-File-System-versi/
 ```
 apt-get install nfs-common nfs-kernel-server
 mkdir -p /srv/nfs4/share
@@ -339,7 +339,7 @@ Open 3 terminal windows to worker01/02/03
 sudo -i
 ./startup.sh
 ```
-The workers should have mounted the nfs share from master02 and kick off the mesos slave deamons.
+The workers should have mounted the nfs share from master02 and kick off the mesos slave daemons.
 
 Next open 3 terminal windows to master02
 ```
@@ -396,7 +396,7 @@ You'll see the sensor data from kafka being displayed on the consumer console.
 
 ![Data going in and out of Kafka](doc/05_sensor_and_kafka_consumer.png)
 
-## Building the scala application and getting ready to deploy
+## Building the Scala Application and getting ready to deploy
 
 One of the challenges I set myself with this project was to write code in a new language, I chose to use Scala and Spark streaming (an ideal fit for mesos), much of the work is based around the learnings from a couple of books and the excellent [Taming Big Data with Spark Streaming and Scala - Hands On!](https://www.packtpub.com/big-data-and-business-intelligence/taming-big-data-spark-streaming-and-scala-%E2%80%93-hands-video) by Frank Kane.
 
@@ -429,7 +429,7 @@ libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.8"
 libraryDependencies += "com.pygmalios" %% "reactiveinflux" % "0.10.0.5"
 libraryDependencies += "com.typesafe" % "config" % "1.2.1"
 ```
-There include libraries for kafka, json parsing, config managment an influxdb. The job of sbt is to go and grab the nested dependencies of jars needed to build the jar and package it up for runtime.
+There include libraries for kafka, json parsing, config management and influxdb. The job of sbt is to go and grab the nested dependencies of jars needed to build the jar and package it up for runtime.
 
 You may want to review the runtime settings included in the project in ```src/main/resources/application.conf```.
 
@@ -449,7 +449,7 @@ cd target/scala-2.10
 python -m SimpleHTTPServer 8000
 ```
 
-In the second, submit the spark applicaton (you'll need the spark binaries installed), replace the 10.0.0.9 with you dev pc ip
+In the second, submit the spark application (you'll need the spark binaries installed), replace the 10.0.0.9 with you dev pc ip
 ```
 /opt/spark/bin/spark-submit --class com.andyburgin.sparkstreaming.KafkaSensor  --master mesos://master02:7077 --deploy-mode cluster --conf spark.testing.reservedMemory="64000000" --conf spark.testing.memory="128000000" --executor-memory 256m --driver-memory 256m --num-executors 1 http://10.0.0.9:8000/KafkaSensor-assembly-1.0.jar
 ```
