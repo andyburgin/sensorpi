@@ -4,13 +4,11 @@ This repo holds various ramblings, scripts and code put together for and experim
 
 ![View Dashboard](doc/12_grafana_dashboard.png)
 
-Unlike my [Hadoopi project](http://data.andyburgin.co.uk/post/157450047463/running-hue-on-a-raspberry-pi-hadoop-cluster), there isn't chef code to setup and configure a cluster of Raspberry Pis. The reason not to do this was although the resulting system runs, it's really using some of the components "becasue they are there" rather than it's the right technology choice. Originally this project was intended to implement a [SMACK (Spark, Mesos, Akka, Cassandra and Kafka) stack]( https://www.oreilly.com/ideas/the-smack-stack). But due to some of the technical constraints of the Pi it means the implementable components on a raspberry pi are somewhat outdated.
-
-However, if you do look at the example files you'll see more of a SMKS stack (Spark, Mesos, Kafka and Scala) acting as a transfer mechanism between two additional Pis for capturing sensor mnetrics and visualsation the collected data. On the sensor side a Pi zero is using a [EnviroPhat](http://blog.pimoroni.com/enviro-phat/) pushing data to Kafak via Python. On the visualisation side there is an influxdb instance and grafana server to store and serve a realtime dashboard of the data.
+But first a few caveats, unlike my [Hadoopi project](http://data.andyburgin.co.uk/post/157450047463/running-hue-on-a-raspberry-pi-hadoop-cluster) as this is an experiment there isn't chef code to setup and configure the cluster of Raspberry Pis (you'll need to do this by hand). Originally this project was intended to implement a [SMACK (Spark, Mesos, Akka, Cassandra and Kafka) stack]( https://www.oreilly.com/ideas/the-smack-stack). You'll see the end result is more of a SMKS stack (Spark, Mesos, Kafka and Scala) acting as a transfer mechanism between two Pis for capturing sensor mnetrics and visualsation of the collected data. On the sensor side a Pi zero is using an [EnviroPhat](http://blog.pimoroni.com/enviro-phat/) pushing data to Kafka via Python. On the visualisation side there is an influxdb instance and grafana server to store and serve a realtime dashboard of the data.
 
 ![Raspberry Pi Cluster](doc/cluster.jpg)
 
-So if you want to play along it's a case of manual setup, please make sure your command line Fu is cranked up to 11!
+Despite all of those caveats, I learned a tonne about running a Mesos on a cluster (on tin), writing Scala code, building it, Spark streaming, IOT sensors, Influxdb TICK stack and Grafana dashboards. So if you want to play along I expect you'll learn all those things too, so it's a case of manual setup, please make sure your command line Fu is cranked up to 11!
 
 ## What You Will Need
 
@@ -31,9 +29,9 @@ As stated above this project really is an experiment because you could post metr
 
 ## Compilation and Packaging
 
-Becasue the Raspberry Pi uses an arm architecture we are going to have to compile Mesos and Kafka, you'll also find minimal documentation on achieving this, I'm using instructions that Netflix posted after one of their [hackdays](http://ispyker.blogspot.co.uk/2016/05/services-with-netflix-titus-and.html) and [blog post](http://blog.haosdent.me/2016/04/24/mesos-on-arm/). I'll be using the tried and trusted jessie lite 23-09-16 distribution of raspbian as I'd proven out some of the technology on the Hadoopi project.
+Becasue the Raspberry Pi uses an arm architecture we are going to have to compile Mesos and Kafka, you'll also find minimal documentation on achieving this, I'm using instructions that Netflix posted after one of their [hackdays](http://ispyker.blogspot.co.uk/2016/05/services-with-netflix-titus-and.html) and [blog post](http://blog.haosdent.me/2016/04/24/mesos-on-arm/) so as a result we have quite an old version of Mesos 0.28.3. I'll be using the tried and trusted jessie lite 23-09-16 distribution of raspbian as I'd proven whilst building the Hadoopi project.
 
-So boot one of you Pis from a fresh install and run the following to prepare the environment for compiling:
+Boot one of you Pis from a fresh install and run the following to prepare the environment for compiling:
 ```
 sudo -i
 apt-get update
@@ -362,7 +360,7 @@ sudo -i
 ./start-spark-framework.sh
 ./start-kafka-framework.sh
 ```
-Open http://master02:5050/#/frameworks  check both frameworks are running:
+Open http://master02:5050/#/frameworks check both frameworks are running:
 
 ![Running frameworks](doc/03_mesos_frameworks.png)
 
@@ -374,7 +372,7 @@ cd /opt/kafka
 ./kafka-mesos.sh broker add 1 --constraints hostname=like:worker02 --heap 64 --mem 128 --options log.cleaner.dedupe.buffer.size=67108864 --jvm-options "-Xmx128M -Xms64M"
 ./kafka-mesos.sh broker add 2 --constraints hostname=like:worker03 --heap 64 --mem 128 --options log.cleaner.dedupe.buffer.size=67108864 --jvm-options "-Xmx128M -Xms64M"
 ```
-Then for this and subsquent runs start the brokers with:
+Then for this and subsequent runs start the brokers with:
 ```
 sudo -i
 ./start-kafka-brokers.sh
@@ -402,7 +400,7 @@ You'll see the sensor data from kafka being displayed on the consumer console.
 
 One of the challenges I set myself with this project was to write code in a new language, I chose to use Scala and Spark streaming (an ideal fit for mesos), much of the work is based around the learnings from a couple of books and the excellent [Taming Big Data with Spark Streaming and Scala - Hands On!](https://www.packtpub.com/big-data-and-business-intelligence/taming-big-data-spark-streaming-and-scala-%E2%80%93-hands-video) by Frank Kane.
 
-I've put together a small spark streaming app that loads small batches of data from kafka and pushes them to influxdb. One of the main frustrations during development was library dependency issues, I worked originally in ScalaIDE http://scala-ide.org/ submitting the app to my local spark instance using the data source on the Pi Cluster. This was somewhat "clunky" but worked, packaging up the application to deploy to the cluster using the [Scala Build Tool](https://www.scala-sbt.org/) was also problematic, but after much wrangling I got it working. Here's the files included for the KafkaSensor app:
+I've put together a small spark streaming app that loads small batches of data from Kafka and pushes them to influxdb. One of the main frustrations during development was library dependency issues, I worked originally in ScalaIDE http://scala-ide.org/ submitting the app to my local spark instance using the data sources on the Pi Cluster. This was somewhat "clunky" but worked, packaging up the application to deploy to the cluster using the [Scala Build Tool](https://www.scala-sbt.org/) was also problematic, but after much wrangling I got it working. Here's the files included for the KafkaSensor app:
 ```
 .
 ├── build.sbt
@@ -433,7 +431,7 @@ libraryDependencies += "com.typesafe" % "config" % "1.2.1"
 ```
 There include libraries for kafka, json parsing, config managment an influxdb. The job of sbt is to go and grab the nested dependencies of jars needed to build the jar and package it up for runtime.
 
-You may want to review the run time settings included in the project in ```src/main/resources/application.conf```.
+You may want to review the runtime settings included in the project in ```src/main/resources/application.conf```.
 
 To build the jar run:
 ```
@@ -477,6 +475,7 @@ sudo -i
 service grafana-server restart
 ```
 Log into Grafana by hitting http://master01:3000/, login as user "admin" password "admin" (change these at your leisure)
+
 ![Grafan Login](doc/09_grafana_login.png)
 
 Next set up the influxdb data source to http://master01:8086
@@ -509,9 +508,9 @@ sudo -i
 Then terminate the running processes for the kafka framework and mesos master by hitting ^C on each terminal window on master02, also do this on the mesos slave processes on each worker.
 
 ## Summary
-As you'll have seen this is very much an experiment, the original plan to build a SMACK stack haven't come to fruition. The cluster is really a massive overkill to simply recreate https://www.circuits.dk/datalogger-example-using-sense-hat-influxdb-grafana/
+As you'll have seen this is very much an experiment, the original plan to build a SMACK stack hasn't come to fruition. The cluster is really a massive overkill to simply recreate https://www.circuits.dk/datalogger-example-using-sense-hat-influxdb-grafana/
 
-But in doing this I've learned a whole heap about Mesos, Spark and Scala and that was always the intention (and it turns out my soldering skills aren't too bad either).
+But in doing this as I said at the start I've learned a whole heap about Mesos, Spark and Scala and that was always the intention (and it turns out my soldering skills aren't too bad either).
 
 
 
