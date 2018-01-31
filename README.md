@@ -8,22 +8,7 @@ Unlike my [Hadoopi project](http://data.andyburgin.co.uk/post/157450047463/runni
 
 However, if you do look at the example files you'll see more of a SMKS stack (Spark, Mesos, Kafka and Scala) acting as a transfer mechanism between two additional Pis for capturing sensor mnetrics and visualsation the collected data. On the sensor side a Pi zero is using a [EnviroPhat](http://blog.pimoroni.com/enviro-phat/) pushing data to Kafak via Python. On the visualisation side there is an influxdb instance and grafana server to store and serve a realtime dashboard of the data.
 
-
-KIT PICTURE HERE
-
-KIT PICTURE HERE
-
-KIT PICTURE HERE
-
-KIT PICTURE HERE
-
-KIT PICTURE HERE
-
-KIT PICTURE HERE
-
-
-
-
+![Raspberry Pi Cluster](doc/cluster.jpg)
 
 So if you want to play along it's a case of manual setup, please make sure your command line Fu is cranked up to 11!
 
