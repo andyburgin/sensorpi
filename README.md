@@ -1,4 +1,4 @@
-# Mesos, Spark, Kafka, InfluxDB and Grafana on a Raspberry Pi Cluster - Visualising IOT Sensor Data
+# Visualising IOT Sensor Data on a Raspberry Pi Cluster using Mesos, Spark, Kafka, InfluxDB and Grafana
 
 This repo holds various ramblings, scripts and code put together for and experiment to visualise realtime sensor data processed on a cluster of Raspberry Pis. Not disimilar to https://www.circuits.dk/datalogger-example-using-sense-hat-influxdb-grafana/ but using the features of the cluster for near realtime processing.
 
